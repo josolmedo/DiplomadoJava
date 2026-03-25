@@ -33,4 +33,7 @@ public interface InscripcionRepository extends JpaRepository<Inscripciones, Inte
 
     List<Inscripciones> findByGrupoProfesorUsuarioId(Integer usuarioId);
 
+    // Verifica si un alumno ya está inscrito en ese grupo específico
+    boolean existsByAlumnoIdAndGrupoId(Integer idAlumno, Integer idGrupo);
+
 }

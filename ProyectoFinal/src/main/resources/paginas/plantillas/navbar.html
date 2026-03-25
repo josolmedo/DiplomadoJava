@@ -32,12 +32,21 @@
                         Administración
                     </a>
                     <ul class="dropdown-menu">
+                        <li><h6 class="dropdown-header fw-bold text-primary">Carga Académica</h6></li>
                         <li><a class="dropdown-item" th:href="@{/administrador/asignaturas/nueva}">Agregar asignatura</a></li>
                         <li><a class="dropdown-item" th:href="@{/administrador/asignaturas}">Listar asignaturas</a></li>
+                        <li><a class="dropdown-item" th:href="@{/administrador/grupos/nuevo}">Crear nuevo grupo</a></li>
 
                         <li><hr class="dropdown-divider"></li>
+
+                        <li><h6 class="dropdown-header fw-bold text-primary">Usuarios</h6></li>
                         <li><a class="dropdown-item" th:href="@{/administrador/agregar-alumno}">Agregar alumno</a></li>
                         <li><a class="dropdown-item" th:href="@{/administrador/agregar-profesor}">Agregar profesor</a></li>
+
+                        <li><hr class="dropdown-divider"></li>
+
+                        <li><h6 class="dropdown-header fw-bold text-primary">Procesos Escolar</h6></li>
+                        <li><a class="dropdown-item" th:href="@{/administrador/inscribir}">Inscribir Alumno a Materia</a></li>
                     </ul>
                 </li>
             </ul>
