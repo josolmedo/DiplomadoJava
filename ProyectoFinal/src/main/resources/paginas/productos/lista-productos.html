@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="es">
+<head th:replace="~{plantillas/plantilla :: head}"></head>
+<body>
+<header th:replace="~{plantillas/plantilla :: header}"></header>
+<div class="container-flruid">
+    <div th:replace="~{plantillas/plantilla :: alerts}"></div>
+
+    <main class="container text-center col-md-10 p-4 shadow-lg p-3 mb-5 bg-body-tertiary rounded">
+        <h1 th:text="${contenido}"></h1>
+
+
+        <table th:if="${!productos.isEmpty()}" class="table table-striped table-hover table-sm">
+            <div class="d-flex justify-content-end">
+                <a class="btn btn-primary" th:href="@{/productos/ver-alta-producto}" role="button">Nuevo</a>
+            </div>
+           <nav th:replace="~{plantillas/pag-nav::paginador}"/>
+
+            <thead class="table-dark table-bordered">
+            <tr>
+                <th scope="col"> Nombre</th>
+                <th scope="col"> Precio</th>
+                <th scope="col"> Stock</th>
+                <th scope="col"> imagen</th>
+                <th scope="col"> Operaciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="prod: ${productos}">
+                <td th:text="${prod.nombre}"></td>
+                <td th:text="${prod.precio}"></td>
+                <td th:text="${prod.stock}"></td>
+                <td class="align-top" width="450">
+                    <img class="img-thumbnail" th:src="@{'/imagenes/ventas/'+${prod.imagen}}" width="30%" height="30%"><br/>
+                </td>
+                <td>
+                    <a th:href="@{/productos/modificar-producto/{id} (id=${prod.id_producto})}"
+                       class="btn btn-success">Modificar <i class="bi bi-pencil"
+                                                            aria-hidden="true"></i> </a>
+<!--                    <a th:href="@{/productos/eliminar-producto/{id} (id=${prod.id_producto})}"-->
+<!--                       class="btn btn-danger"><i class="bi bi-trash-fill"-->
+<!--                                                 aria-hidden="true"></i>Eliminar </a>-->
+                    <div th:replace="~{plantillas/modal-delete :: modal-eliminar}"></div>
+                    <button class="btn btn-danger"
+                            data-bs-toggle="modal"
+                            th:data-bs-target="'#confirmDelete'+${prod.id_producto}">
+                        <i class="bi bi-trash-fill" aria-hidden="true"></i>
+                        Eliminar
+                    </button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+    </main>
+</div>
+<footer th:replace="~{plantillas/plantilla::footer}"></footer>
+<div th:replace="~{plantillas/plantilla::paginaScripts}"></div>
+</body>
+</html>
