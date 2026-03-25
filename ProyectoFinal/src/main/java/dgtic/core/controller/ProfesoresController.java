@@ -180,6 +180,21 @@ public class ProfesoresController {
         }
     }
 
+    @GetMapping("/descargar-calificacion/{idInscripcion}")
+    public ResponseEntity<byte[]> descargarCalificacionProfesor(@PathVariable Integer idInscripcion, HttpSession session) {
+        Integer usuarioId = (Integer) session.getAttribute("usuarioId");
+        if (usuarioId == null) return ResponseEntity.status(401).build();
+
+        Inscripciones inscripcion = obtenerInscripcionSegura(usuarioId, idInscripcion);
+
+        // Reutilizamos el reporte pasándole solo esta materia en una lista
+        byte[] pdf = reportePdfService.generarReporteCalificaciones(Collections.singletonList(inscripcion), inscripcion.getAlumno().getUsuario());
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Boleta_" + inscripcion.getAlumno().getUsuario().getNombre() + ".pdf")
+                .contentType(MediaType.APPLICATION_PDF).body(pdf);
+    }
+
     // Método de seguridad auxiliar para evitar que un profesor consulte alumnos de otros profesores
     private Inscripciones obtenerInscripcionSegura(Integer profesorUsuarioId, Integer idInscripcion) {
         return inscripcionService.obtenerInscripcionesPorProfesor(profesorUsuarioId).stream()

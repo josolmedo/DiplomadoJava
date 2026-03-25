@@ -73,6 +73,10 @@
                         <td th:text="${inscripcion.grupo.asignatura.nombre}"></td>
                         <td th:text="${inscripcion.calificacion != null ? inscripcion.calificacion : 'Sin calificar'}"></td>
                         <td>
+                            <a th:href="@{/profesores/descargar-calificacion/{id}(id=${inscripcion.id})}" class="btn btn-sm btn-outline-danger" title="Descargar PDF">
+                                <i class="bi bi-file-earmark-pdf"></i> PDF
+                            </a>
+
                             <a th:href="@{/profesores/enviar-calificacion/{id}(id=${inscripcion.id})}" class="btn btn-sm btn-primary" title="Enviar a Alumno y Padre">
                                 <i class="bi bi-envelope-check"></i> Enviar Boleta
                             </a>
@@ -87,3 +91,4 @@
 <footer th:replace="~{plantillas/plantilla::footer}"></footer>
 <script th:replace="~{plantillas/plantilla::paginaScripts}"></script>
 </body>
+</html>
