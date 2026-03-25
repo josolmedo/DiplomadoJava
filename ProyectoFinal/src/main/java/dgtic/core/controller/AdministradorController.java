@@ -17,12 +17,22 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/administrador")
 public class AdministradorController {
 
-    @Autowired private AsignaturaService asignaturaService;
-    @Autowired private UsuarioService usuarioService;
-    @Autowired private GrupoService grupoService;
-    @Autowired private InscripcionService inscripcionService;
-    @Autowired private ProfesorService profesorService;
-    @Autowired private AlumnoService alumnoService;
+    @Autowired
+    private AsignaturaService asignaturaService;
+    @Autowired
+    private UsuarioService usuarioService;
+    @Autowired
+    private GrupoService grupoService;
+    @Autowired
+    private InscripcionService inscripcionService;
+    @Autowired
+    private ProfesorService profesorService;
+    @Autowired
+    private AlumnoService alumnoService;
+    @Autowired
+    private ReportePdfService reportePdfService;
+    @Autowired
+    private CorreoService correoService;
 
     // LECTURA
     @GetMapping("/asignaturas")
@@ -200,6 +210,58 @@ public class AdministradorController {
             model.addAttribute("grupos", grupoService.obtenerTodos());
             return "administrador/formulario-inscripcion";
         }
+    }
+
+    @GetMapping("/grupos")
+    public String listarGrupos(HttpSession session, Model model) {
+        if (!"ADMIN".equals(session.getAttribute("rol"))) return "redirect:/login";
+
+        model.addAttribute("contenido", "Gestión de Grupos");
+        model.addAttribute("grupos", grupoService.obtenerTodos());
+        return "administrador/lista-grupos-admin"; // Vista que ya tienes
+    }
+
+    @GetMapping("/grupos/reporte/descargar")
+    public org.springframework.http.ResponseEntity<byte[]> descargarReporteGrupos(HttpSession session) {
+        if (!"ADMIN".equals(session.getAttribute("rol"))) {
+            return org.springframework.http.ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).build();
+        }
+
+        // Obtener grupos y generar PDF
+        java.util.List<dgtic.core.model.entity.Grupos> grupos = grupoService.obtenerTodos();
+        byte[] pdfBytes = reportePdfService.generarReporteGrupos(grupos);
+
+        // Iniciar la descarga en el navegador
+        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        headers.setContentType(org.springframework.http.MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("attachment", "Reporte_Grupos_EscuRed.pdf");
+
+        return new org.springframework.http.ResponseEntity<>(pdfBytes, headers, org.springframework.http.HttpStatus.OK);
+    }
+
+    @GetMapping("/grupos/reporte/enviar")
+    public String enviarReporteGruposPorCorreo(HttpSession session) {
+        if (!"ADMIN".equals(session.getAttribute("rol"))) {
+            return "redirect:/login";
+        }
+
+        // 1. Obtener el ID del administrador desde la sesión
+        Integer idAdmin = (Integer) session.getAttribute("usuarioId");
+        dgtic.core.model.entity.Usuarios admin = usuarioService.buscarPorId(idAdmin);
+        String destinatario = admin.getEmail();
+
+        // 2. Generar el PDF
+        java.util.List<dgtic.core.model.entity.Grupos> grupos = grupoService.obtenerTodos();
+        byte[] pdfBytes = reportePdfService.generarReporteGrupos(grupos);
+
+        // 3. Enviar el correo
+        String asunto = "Reporte Automatizado de Grupos - EscuRed";
+        String cuerpo = "Hola " + admin.getNombre() + ",\n\nSe adjunta el reporte actual de los grupos registrados en el sistema EscuRed solicitado desde tu cuenta.\n\nSaludos.";
+
+        correoService.enviarCorreoConPdf(destinatario, asunto, cuerpo, pdfBytes, "Reporte_Grupos_EscuRed.pdf");
+
+        // 4. Redirigir a la misma vista de grupos indicando que el correo se envió con éxito
+        return "redirect:/administrador/grupos?correoEnviado=true";
     }
 
 

@@ -5,6 +5,7 @@ import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 import dgtic.core.model.entity.Asistencias;
+import dgtic.core.model.entity.Grupos;
 import dgtic.core.model.entity.Inscripciones;
 import dgtic.core.model.entity.Usuarios;
 import org.springframework.stereotype.Service;
@@ -110,6 +111,56 @@ public class ReportePdfService {
             e.printStackTrace();
         }
 
+        return baos.toByteArray();
+    }
+
+    public byte[] generarReporteGrupos(List<Grupos> grupos) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Document documento = new Document(PageSize.A4);
+
+        try {
+            PdfWriter.getInstance(documento, baos);
+            documento.open();
+
+            // Título
+            Font fuenteTitulo = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18);
+            Paragraph titulo = new Paragraph("Reporte de Grupos - Sistema EscuRed", fuenteTitulo);
+            titulo.setAlignment(Element.ALIGN_CENTER);
+            titulo.setSpacingAfter(20);
+            documento.add(titulo);
+
+            // Tabla de Grupos (4 columnas)
+            PdfPTable tabla = new PdfPTable(4);
+            tabla.setWidthPercentage(100);
+            tabla.setWidths(new float[]{1f, 3f, 4f, 4f});
+
+            // Encabezados
+            String[] encabezados = {"ID", "Grupo", "Asignatura", "Profesor Titular"};
+            for (String encabezado : encabezados) {
+                PdfPCell celda = new PdfPCell(new Phrase(encabezado, FontFactory.getFont(FontFactory.HELVETICA_BOLD)));
+                celda.setBackgroundColor(new java.awt.Color(173, 216, 230)); // Tu color azul clarito
+                celda.setHorizontalAlignment(Element.ALIGN_CENTER);
+                celda.setPadding(5);
+                tabla.addCell(celda);
+            }
+
+            // Llenar datos de la base de datos
+            for (Grupos grupo : grupos) {
+                tabla.addCell(String.valueOf(grupo.getId()));
+                tabla.addCell(grupo.getNombre());
+                tabla.addCell(grupo.getAsignatura().getNombre());
+
+                String nombreProfesor = grupo.getProfesor().getUsuario().getNombre() + " " +
+                        grupo.getProfesor().getUsuario().getApellido();
+                tabla.addCell(nombreProfesor);
+            }
+
+            documento.add(tabla);
+            documento.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return baos.toByteArray();
     }
 
