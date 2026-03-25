@@ -9,4 +9,5 @@ public interface AsistenciaService {
     void guardarAsistencia(AsistenciasDTO asistenciaDTO);
     List<Grupos> obtenerTodosLosGrupos();
     List<Asistencias> obtenerAsistenciasPorAlumno(Integer usuarioId);
+    List<Asistencias> obtenerAsistenciasPorAlumnoYGrupo(Integer idAlumno, Integer idGrupo);
 }

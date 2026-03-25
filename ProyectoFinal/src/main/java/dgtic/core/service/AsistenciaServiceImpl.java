@@ -58,4 +58,10 @@ public class AsistenciaServiceImpl implements AsistenciaService {
     public List<Asistencias> obtenerAsistenciasPorAlumno(Integer usuarioId) {
         return asistenciaRepository.findByAlumnoUsuarioIdOrderByFechaDesc(usuarioId);
     }
+
+    @Override
+    public List<Asistencias> obtenerAsistenciasPorAlumnoYGrupo(Integer idAlumno, Integer idGrupo) {
+        return asistenciaRepository.findByAlumnoIdAndGrupoId(idAlumno, idGrupo);
+    }
+
 }
