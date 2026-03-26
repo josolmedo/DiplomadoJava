@@ -1,0 +1,29 @@
+A continuación expondremos la funcionalidad del programa de gestión escolar EscuRed.
+Para empezar, al dirigirnos a localhost podremos ver que ingresaremos al index.html y después de 5 segundos seremos redirigidos al sitio principal de nuestra aplicación. Esto es gestionado por nuestro controlador “InicioController”, en donde, como ven, por defecto vamos a index.html y después de 5 segundos nos redirige a principal.
+
+El método “principal” de nuestro controlador renderiza principal.html, en donde enviamos el mensaje “Sistema de gestión escolar: EscuRed” por medio de la variable “contenido”, que capturamos gracias a Thymeleaf.
+
+En este proyecto requerimos identificarnos por medio de un inicio de sesión. De acuerdo a nuestro rol [mostrar diagrama DB], si somos alumnos se nos habilitan ciertas opciones, si somos profesores otras, y si somos administradores otras distintas.
+Primero iniciaremos mostrando el inicio de sesión para alumno. Damos clic en iniciar sesión.
+
+Analicemos ahora lo que sucede para poder renderizar este endpoint /login. Al dar clic en login, esta acción es gestionada por nuestro LoginController, el cual devuelve la vista login.html. Aquí entra en juego el método procesarLogin:
+
+Este método se activa cuando se envía el formulario gracias a la anotación @PostMapping("/login"). Recibe el email y la contraseña que el usuario escribió.
+
+Al ingresar el email y la contraseña, estas viajan por medio de la URL y son capturadas mediante la anotación @RequestParam. También hacemos uso de la clase Model y de HttpSession (clase que permite guardar información del usuario mientras navega por la aplicación). Posteriormente, se realiza la autenticación llamando al servicio usuarioService.autenticarUsuario(email, password). Este servicio se encarga de buscar en la base de datos si existe un usuario con esas credenciales. Recordemos que ese servicio usa usuarioRepository por medio de una autowired. usuarioRepository extiende de JpaRepository, es por ello que es posible realizar este tipo de consultas.
+
+Si el usuario existe, es decir, si no es null, entonces comenzamos a manejar la sesión:
+Primero, guardamos el ID del usuario en la sesión con session.setAttribute("usuarioId", usuario.getId()). Esto nos permite identificar al usuario durante toda su navegación en el sistema.
+
+Después, construimos su nombre completo y lo guardamos como "usuarioLogueado", lo cual nos sirve para mostrar quién ha iniciado sesión dentro de la aplicación.
+Luego, obtenemos el rol del usuario mediante usuario.getRol().getId(). Con base en ese ID, asignamos un tipo de rol en la sesión:
+
+•	1 corresponde a ADMIN 
+•	2 a PROFESOR 
+•	3 a ALUMNO 
+•	4 a PADRE 
+
+Esto es muy importante, ya que gracias a este valor podemos controlar qué funcionalidades verá cada tipo de usuario.
+Finalmente, si todo fue correcto, redirigimos al usuario a la página principal usando "redirect:/principal".
+En resumen, este método se encarga de validar las credenciales, guardar la información del usuario en la sesión y definir su rol dentro del sistema para controlar el acceso a las distintas funcionalidades.
+
