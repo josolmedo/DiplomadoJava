@@ -53,6 +53,8 @@ public class AlumnosController {
 
     @GetMapping("/registrar-asistencia")
     public String mostrarFormularioAsistencia(HttpSession session, Model model) {
+
+        //Seguridad y validación
         Integer usuarioId = (Integer) session.getAttribute("usuarioId");
         if (usuarioId == null) return "redirect:/login";
 

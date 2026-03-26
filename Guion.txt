@@ -6,13 +6,17 @@ El método “principal” de nuestro controlador renderiza principal.html, en d
 En este proyecto requerimos identificarnos por medio de un inicio de sesión. De acuerdo a nuestro rol [mostrar diagrama DB], si somos alumnos se nos habilitan ciertas opciones, si somos profesores otras, y si somos administradores otras distintas.
 Primero iniciaremos mostrando el inicio de sesión para alumno. Damos clic en iniciar sesión.
 
-Analicemos ahora lo que sucede para poder renderizar este endpoint /login. Al dar clic en login, esta acción es gestionada por nuestro LoginController, el cual devuelve la vista login.html. Aquí entra en juego el método procesarLogin:
+Analicemos ahora lo que sucede para poder renderizar este endpoint /login. Al dar clic en login, esta acción es gestionada por nuestro LoginController, el cual devuelve la vista login.html.
+
+Aquí entra en juego el método procesarLogin:
 
 Este método se activa cuando se envía el formulario gracias a la anotación @PostMapping("/login"). Recibe el email y la contraseña que el usuario escribió.
+Al ingresar el email y la contraseña, estas viajan por medio de la URL y son capturadas mediante la anotación @RequestParam. También hacemos uso de la clase Model y de HttpSession (clase que permite guardar información del usuario mientras navega por la aplicación).
 
-Al ingresar el email y la contraseña, estas viajan por medio de la URL y son capturadas mediante la anotación @RequestParam. También hacemos uso de la clase Model y de HttpSession (clase que permite guardar información del usuario mientras navega por la aplicación). Posteriormente, se realiza la autenticación llamando al servicio usuarioService.autenticarUsuario(email, password). Este servicio se encarga de buscar en la base de datos si existe un usuario con esas credenciales. Recordemos que ese servicio usa usuarioRepository por medio de una autowired. usuarioRepository extiende de JpaRepository, es por ello que es posible realizar este tipo de consultas.
+Posteriormente, se realiza la autenticación llamando al servicio usuarioService.autenticarUsuario(email, password). Este servicio se encarga de buscar en la base de datos si existe un usuario con esas credenciales. Recordemos que ese servicio usa usuarioRepository por medio de una autowired. usuarioRepository extiende de JpaRepository, es por ello que es posible realizar este tipo de consultas.
 
 Si el usuario existe, es decir, si no es null, entonces comenzamos a manejar la sesión:
+
 Primero, guardamos el ID del usuario en la sesión con session.setAttribute("usuarioId", usuario.getId()). Esto nos permite identificar al usuario durante toda su navegación en el sistema.
 
 Después, construimos su nombre completo y lo guardamos como "usuarioLogueado", lo cual nos sirve para mostrar quién ha iniciado sesión dentro de la aplicación.
@@ -25,5 +29,22 @@ Luego, obtenemos el rol del usuario mediante usuario.getRol().getId(). Con base 
 
 Esto es muy importante, ya que gracias a este valor podemos controlar qué funcionalidades verá cada tipo de usuario.
 Finalmente, si todo fue correcto, redirigimos al usuario a la página principal usando "redirect:/principal".
-En resumen, este método se encarga de validar las credenciales, guardar la información del usuario en la sesión y definir su rol dentro del sistema para controlar el acceso a las distintas funcionalidades.
 
+En caso contrario, si la BD no trajo nada, pues devolvemos el mensaje de error “Credenciales inválidas. Verifica tu correo y contraseña”
+Para cerrar sesión esto es más sencillo, simplemente invalidamos la sesión por medio del método invalidate del objeto session, instancia de la clase HttpSession y redirigimos al login.
+
+Ingresamos con la cuenta de un alumno. Al dar clic en 'Iniciar Sesión', somos redirigidos al panel principal. Noten que el Navbar ha cambiado: gracias a la validación de Thymeleaf th:if="${session.rol == 'ALUMNO'}", ahora solo vemos el menú 'Mi Portal'.
+
+En la opción 'Ver Asignaturas', el sistema utiliza el usuarioId que almacenamos en la sesión para realizar una consulta filtrada. El InscripcionService busca en la base de datos únicamente las materias asociadas a este alumno específico, mostrando sus calificaciones actuales si ya han sido asignadas por un profesor.
+Pasemos ahora a una de las funciones clave de nuestra lógica de negocio: el Registro de Asistencia. Aquí demostraremos el manejo de conversiones y validaciones.
+Al seleccionar una fecha y un grupo, y dar clic en enviar, el formulario manda la fecha como un String. En mi clase AsistenciaServiceImpl, realizamos una conversión de datos utilizando un DateTimeFormatter con el patrón 'yyyy-MM-dd' para transformar ese texto en un objeto LocalDate de Java, que es lo que nuestra base de datos MariaDB requiere.
+Pero no solo convertimos, también protegemos la integridad de los datos. 
+
+Si yo intento registrar mi asistencia nuevamente para el mismo grupo en el mismo día, el sistema ejecuta una validación: asistenciaRepository.existsByFechaAndAlumnoIdAndGrupoId.
+
+Como ven en pantalla, el sistema lanza una IllegalStateException que mi controlador captura, y gracias a Thymeleaf, mostramos este mensaje de error en rojo: 'Ya registraste tu asistencia para esta materia el día de hoy'. Así evitamos corromper la base de datos con registros duplicados.
+
+Finalmente, el alumno tiene la capacidad de generar un reporte de sus actividades. Al accionar este botón, invocamos al ReportePdfService. Este servicio utiliza la librería OpenPDF para iterar sobre la lista de inscripciones del alumno, 'dibujando' en tiempo real un documento PDF profesional con sus datos, materias y estatus académico actual.
+Este archivo se entrega directamente al flujo de respuesta del navegador para que el alumno pueda guardarlo localmente.
+
+Una vez terminadas las consultas, cerramos sesión. Como expliqué anteriormente, esto limpia el objeto session, eliminando el usuarioId y el rol, regresándonos de forma segura al formulario de login.
