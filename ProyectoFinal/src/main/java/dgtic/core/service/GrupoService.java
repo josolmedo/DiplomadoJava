@@ -6,4 +6,6 @@ import java.util.List;
 public interface GrupoService {
     List<Grupos> obtenerTodos();
     void guardarGrupo(GruposDTO dto);
+    GruposDTO obtenerPorId(Integer id);
+    void eliminar(Integer id);
 }

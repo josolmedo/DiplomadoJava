@@ -29,12 +29,24 @@ public class Grupos {
     @JoinColumn(name = "id_profesor", nullable = false)
     private Profesores profesor;
 
+    // Para borrar:
+
+    @OneToMany(mappedBy = "grupo", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Inscripciones> inscripciones;
+
+    @OneToMany(mappedBy = "grupo", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Asistencias> asistencias;
+
+
+
+    /*
+
     @OneToMany(mappedBy = "grupo")
     private List<Inscripciones> inscripciones;
 
     @OneToMany(mappedBy = "grupo")
     private List<Asistencias> asistencias;
-
+    */
     @Override
     public String toString() {
         return "Grupos{id=" + id + ", nombre='" + nombre + "'}";

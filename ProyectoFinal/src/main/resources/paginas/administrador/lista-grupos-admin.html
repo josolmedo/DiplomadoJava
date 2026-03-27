@@ -8,6 +8,10 @@
     <div th:if="${param.exito}" class="alert alert-success text-center">Operación realizada con éxito.</div>
     <div th:if="${param.eliminado}" class="alert alert-warning text-center">Grupo eliminado correctamente.</div>
 
+    <div th:if="${param.error}" class="alert alert-danger text-center fw-bold">
+        Error: No se puede eliminar el grupo porque ya tiene alumnos inscritos o asistencias registradas.
+    </div>
+
     <div th:if="${param.correoEnviado}" class="alert alert-info text-center">El PDF ha sido descargado y enviado al administrador.</div>
 
     <main class="container text-center col-md-10 p-4 shadow-lg p-3 mb-5 bg-body-tertiary rounded">
@@ -45,7 +49,14 @@
                 <td th:text="${grup.profesor.usuario.nombre + ' ' + grup.profesor.usuario.apellido}"></td>
                 <td>
                     <a th:href="@{/administrador/grupos/editar/{id}(id=${grup.id})}" class="btn btn-primary btn-sm">Editar</a>
-                    <a th:href="@{/administrador/grupos/eliminar/{id}(id=${grup.id})}" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de eliminar este grupo?');">Eliminar</a>
+
+                    <a th:href="@{/administrador/grupos/eliminar/{id}(id=${grup.id})}"
+                       class="btn btn-danger btn-sm"
+                       th:onclick="${grup.inscripciones.size() > 0 or grup.asistencias.size() > 0} ?
+                                   'return confirm(\'¡ADVERTENCIA! ¿Está seguro que quiere borrar? Este grupo cuenta con asistencias y alumnos inscritos y se borrarán permanentemente.\');' :
+                                   'return confirm(\'¿Estás seguro de eliminar este grupo vacío?\');'">
+                        Eliminar
+                    </a>
                 </td>
             </tr>
             </tbody>

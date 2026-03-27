@@ -46,4 +46,27 @@ public class GrupoServiceImpl implements GrupoService {
 
         grupoRepository.save(grupo);
     }
+
+    @Override
+    public GruposDTO obtenerPorId(Integer id) {
+        dgtic.core.model.entity.Grupos grupo = grupoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Grupo no encontrado"));
+
+        // Mapeamos la entidad real a un DTO para mandarlo al formulario
+        GruposDTO dto = new GruposDTO();
+        dto.setId(grupo.getId());
+        dto.setNombre(grupo.getNombre());
+        dto.setIdAsignatura(grupo.getAsignatura().getId());
+        dto.setIdProfesor(grupo.getProfesor().getId());
+
+        return dto;
+    }
+
+    @Override
+    public void eliminar(Integer id) {
+        grupoRepository.deleteById(id);
+    }
+
+
+
 }

@@ -183,6 +183,32 @@ public class AdministradorController {
         }
     }
 
+    @GetMapping("/grupos/editar/{id}")
+    public String mostrarFormularioEditarGrupo(@PathVariable("id") Integer id, HttpSession session, Model model) {
+        if (!"ADMIN".equals(session.getAttribute("rol"))) return "redirect:/login";
+
+        // Buscamos el grupo por ID y lo mandamos al formulario
+        model.addAttribute("grupoDTO", grupoService.obtenerPorId(id));
+        // Volvemos a mandar las listas para los selectores (comboboxes)
+        model.addAttribute("asignaturas", asignaturaService.obtenerTodas());
+        model.addAttribute("profesores", profesorService.obtenerTodos());
+
+        return "administrador/formulario-grupo"; // Reutilizamos el mismo formulario de creación
+    }
+
+    @GetMapping("/grupos/eliminar/{id}")
+    public String eliminarGrupo(@PathVariable("id") Integer id, HttpSession session) {
+        if (!"ADMIN".equals(session.getAttribute("rol"))) return "redirect:/login";
+
+        try {
+            grupoService.eliminar(id);
+            return "redirect:/administrador/grupos?eliminado=true";
+        } catch (Exception e) {
+            // Saltará al catch si intentas eliminar un grupo que ya tiene alumnos inscritos (Integridad Referencial)
+            return "redirect:/administrador/grupos?error=true";
+        }
+    }
+
     @GetMapping("/inscribir")
     public String mostrarInscripcion(HttpSession session, Model model) {
         if (!"ADMIN".equals(session.getAttribute("rol"))) return "redirect:/login";

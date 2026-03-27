@@ -22,6 +22,7 @@ public class Alumnos {
     @JoinColumn(name = "id_usuario", unique = true, nullable = false)
     private Usuarios usuario;
 
+    //Muchos alumnos pueden tener un padre
     @ManyToOne
     @JoinColumn(name = "id_padre")
     private Padres padre;

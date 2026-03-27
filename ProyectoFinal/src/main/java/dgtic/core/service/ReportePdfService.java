@@ -164,4 +164,59 @@ public class ReportePdfService {
         return baos.toByteArray();
     }
 
+    public byte[] generarReporteMisGruposProfesor(List<Inscripciones> inscripciones, Usuarios profesor) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Document documento = new Document(PageSize.A4);
+
+        try {
+            PdfWriter.getInstance(documento, baos);
+            documento.open();
+
+            // Título
+            Font fuenteTitulo = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18);
+            Paragraph titulo = new Paragraph("Reporte de Grupos Asignados - EscuRed", fuenteTitulo);
+            titulo.setAlignment(Element.ALIGN_CENTER);
+            titulo.setSpacingAfter(20);
+            documento.add(titulo);
+
+            // Datos del profesor
+            documento.add(new Paragraph("Profesor: " + profesor.getNombre() + " " + (profesor.getApellido() != null ? profesor.getApellido() : "")));
+            documento.add(new Paragraph("Correo: " + profesor.getEmail()));
+            documento.add(new Paragraph(" ")); // Espacio en blanco
+
+            // Tabla de Grupos (3 columnas)
+            PdfPTable tabla = new PdfPTable(3);
+            tabla.setWidthPercentage(100);
+            tabla.setWidths(new float[]{2f, 3f, 4f});
+
+            // Encabezados
+            String[] encabezados = {"Grupo", "Asignatura", "Alumno Inscrito"};
+            for (String encabezado : encabezados) {
+                PdfPCell celda = new PdfPCell(new Phrase(encabezado, FontFactory.getFont(FontFactory.HELVETICA_BOLD)));
+                celda.setBackgroundColor(new java.awt.Color(173, 216, 230)); // Mismo azul que ya usas
+                celda.setHorizontalAlignment(Element.ALIGN_CENTER);
+                celda.setPadding(5);
+                tabla.addCell(celda);
+            }
+
+            // Llenar datos iterando sobre las inscripciones del profesor
+            for (Inscripciones inscripcion : inscripciones) {
+                tabla.addCell(inscripcion.getGrupo().getNombre());
+                tabla.addCell(inscripcion.getGrupo().getAsignatura().getNombre());
+
+                String nombreAlumno = inscripcion.getAlumno().getUsuario().getNombre() + " " + inscripcion.getAlumno().getUsuario().getApellido();
+                tabla.addCell(nombreAlumno);
+            }
+
+            documento.add(tabla);
+            documento.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return baos.toByteArray();
+    }
+
+
+
 }

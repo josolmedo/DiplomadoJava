@@ -4,10 +4,7 @@ import dgtic.core.model.dto.AsistenciasDTO;
 import dgtic.core.model.dto.InscripcionesDTO;
 import dgtic.core.model.entity.Asistencias;
 import dgtic.core.model.entity.Inscripciones;
-import dgtic.core.service.AsistenciaService;
-import dgtic.core.service.CorreoService;
-import dgtic.core.service.InscripcionService;
-import dgtic.core.service.ReportePdfService;
+import dgtic.core.service.*;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,8 +31,11 @@ public class ProfesoresController {
 
     @Autowired
     private ReportePdfService reportePdfService;
+
     @Autowired
     private CorreoService correoService;
+
+    @Autowired private UsuarioService usuarioService;
 
     @GetMapping("/lista-grupos")
     public String verMisGrupos(HttpSession session, Model model) {
@@ -47,6 +47,43 @@ public class ProfesoresController {
 
         // Retorna la vista HTML que debe estar en templates/profesores/lista-grupos.html
         return "profesores/lista-grupos";
+    }
+
+    // DESCARGAR Y ENVIAR PDF DE MIS GRUPOS
+    @GetMapping("/descargar-mis-grupos")
+    public ResponseEntity<byte[]> descargarMisGrupos(HttpSession session) {
+        Integer usuarioId = (Integer) session.getAttribute("usuarioId");
+        if (usuarioId == null) return ResponseEntity.status(401).build();
+
+        dgtic.core.model.entity.Usuarios profesor = usuarioService.buscarPorId(usuarioId);
+        List<Inscripciones> misGrupos = inscripcionService.obtenerInscripcionesPorProfesor(usuarioId);
+
+        byte[] pdf = reportePdfService.generarReporteMisGruposProfesor(misGrupos, profesor);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Mis_Grupos_" + profesor.getNombre() + ".pdf")
+                .contentType(MediaType.APPLICATION_PDF).body(pdf);
+    }
+
+    @GetMapping("/enviar-mis-grupos")
+    public String enviarMisGrupos(HttpSession session) {
+        Integer usuarioId = (Integer) session.getAttribute("usuarioId");
+        if (usuarioId == null) return "redirect:/login";
+
+        try {
+            dgtic.core.model.entity.Usuarios profesor = usuarioService.buscarPorId(usuarioId);
+            List<Inscripciones> misGrupos = inscripcionService.obtenerInscripcionesPorProfesor(usuarioId);
+
+            byte[] pdf = reportePdfService.generarReporteMisGruposProfesor(misGrupos, profesor);
+
+            String cuerpo = "Hola " + profesor.getNombre() + ",\n\nAdjunto encontrarás el reporte actualizado de tus grupos y alumnos asignados en el sistema EscuRed.\n\nSaludos.";
+            correoService.enviarCorreoConPdf(profesor.getEmail(), "Reporte de Mis Grupos - EscuRed", cuerpo, pdf, "Mis_Grupos_Asignados.pdf");
+
+            return "redirect:/profesores/lista-grupos?correoExito";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "redirect:/profesores/lista-grupos?correoError";
+        }
     }
 
 
@@ -153,11 +190,21 @@ public class ProfesoresController {
             List<Asistencias> asistencias = asistenciaService.obtenerAsistenciasPorAlumnoYGrupo(inscripcion.getAlumno().getId(), inscripcion.getGrupo().getId());
             byte[] pdf = reportePdfService.generarReporteAsistencias(asistencias, inscripcion.getAlumno().getUsuario());
 
-            String cuerpo = "Hola " + inscripcion.getAlumno().getUsuario().getNombre() + ",\n\nTu profesor ha enviado tu historial de asistencias de la materia " + inscripcion.getGrupo().getAsignatura().getNombre() + ".";
-            correoService.enviarCorreoConPdf(inscripcion.getAlumno().getUsuario().getEmail(), "Reporte de Asistencias - EscuRed", cuerpo, pdf, "Asistencias.pdf");
+            // 1. Enviar correo al Alumno
+            String correoAlumno = inscripcion.getAlumno().getUsuario().getEmail();
+            String cuerpoAlumno = "Hola " + inscripcion.getAlumno().getUsuario().getNombre() + ",\n\nTu profesor ha enviado tu historial de asistencias de la materia " + inscripcion.getGrupo().getAsignatura().getNombre() + ".";
+            correoService.enviarCorreoConPdf(correoAlumno, "Reporte de Asistencias - EscuRed", cuerpoAlumno, pdf, "Asistencias.pdf");
+
+            // 2. Enviar correo al Padre de Familia (Validando que exista la relación en la BD)
+            if (inscripcion.getAlumno().getPadre() != null) {
+                String correoPadre = inscripcion.getAlumno().getPadre().getUsuario().getEmail();
+                String cuerpoPadre = "Estimado padre de familia,\n\nPor este medio le compartimos el reporte de asistencias de su hijo(a) " + inscripcion.getAlumno().getUsuario().getNombre() + " correspondiente a la materia " + inscripcion.getGrupo().getAsignatura().getNombre() + ".";
+                correoService.enviarCorreoConPdf(correoPadre, "Reporte de Asistencias de su hijo(a) - EscuRed", cuerpoPadre, pdf, "Asistencias_Hijo.pdf");
+            }
 
             return "redirect:/profesores/registrar-asistencia?correoExito";
         } catch (Exception e) {
+            e.printStackTrace();
             return "redirect:/profesores/registrar-asistencia?correoError";
         }
     }
