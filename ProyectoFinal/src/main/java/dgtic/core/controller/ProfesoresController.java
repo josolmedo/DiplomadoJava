@@ -37,9 +37,21 @@ public class ProfesoresController {
     @Autowired
     private CorreoService correoService;
 
-    // ==========================================
-    // 1. MÓDULO DE CALIFICACIONES
-    // ==========================================
+    @GetMapping("/lista-grupos")
+    public String verMisGrupos(HttpSession session, Model model) {
+        Integer usuarioId = (Integer) session.getAttribute("usuarioId");
+        if (usuarioId == null) return "redirect:/login";
+
+        // Obtenemos las inscripciones/grupos asignados a este profesor
+        model.addAttribute("misGrupos", inscripcionService.obtenerInscripcionesPorProfesor(usuarioId));
+
+        // Retorna la vista HTML que debe estar en templates/profesores/lista-grupos.html
+        return "profesores/lista-grupos";
+    }
+
+
+
+
     @GetMapping("/asignar-calificacion")
     public String mostrarFormularioCalificacion(HttpSession session, Model model) {
         Integer usuarioId = (Integer) session.getAttribute("usuarioId");
