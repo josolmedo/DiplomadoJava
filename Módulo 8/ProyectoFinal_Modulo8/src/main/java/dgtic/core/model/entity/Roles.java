@@ -2,6 +2,7 @@ package dgtic.core.model.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.List;
 
@@ -22,6 +23,7 @@ public class Roles {
     private String nombre;
 
     // Relación Bidireccional: Un Rol tiene muchos Usuarios
+    @JsonIgnore
     @OneToMany(mappedBy = "rol", fetch = FetchType.LAZY)
     private List<Usuarios> usuarios;
 

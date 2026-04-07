@@ -1,5 +1,6 @@
 package dgtic.core.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,6 +22,7 @@ public class Asignaturas {
     @Column(nullable = false, length = 150, unique = true)
     private String nombre;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "asignatura")
     private List<Grupos> grupos;
 

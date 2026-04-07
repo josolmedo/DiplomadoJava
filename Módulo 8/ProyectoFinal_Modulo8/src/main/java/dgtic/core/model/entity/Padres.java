@@ -1,5 +1,6 @@
 package dgtic.core.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,6 +25,7 @@ public class Padres {
 
     // Un Padre tiene varios Alumnos (Hijos)
     @OneToMany(mappedBy = "padre")
+    @JsonIgnore
     private List<Alumnos> hijos;
 
     @Override

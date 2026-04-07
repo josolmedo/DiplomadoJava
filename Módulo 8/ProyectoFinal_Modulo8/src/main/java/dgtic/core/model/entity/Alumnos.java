@@ -1,5 +1,6 @@
 package dgtic.core.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,9 +29,11 @@ public class Alumnos {
     private Padres padre;
 
     @OneToMany(mappedBy = "alumno", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Inscripciones> inscripciones;
 
     @OneToMany(mappedBy = "alumno")
+    @JsonIgnore
     private List<Asistencias> asistencias;
 
     @Override

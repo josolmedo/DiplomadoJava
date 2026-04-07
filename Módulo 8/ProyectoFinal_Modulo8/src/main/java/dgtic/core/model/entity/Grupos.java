@@ -1,5 +1,6 @@
 package dgtic.core.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -32,9 +33,11 @@ public class Grupos {
     // Para borrar:
 
     @OneToMany(mappedBy = "grupo", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Inscripciones> inscripciones;
 
     @OneToMany(mappedBy = "grupo", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Asistencias> asistencias;
 
 

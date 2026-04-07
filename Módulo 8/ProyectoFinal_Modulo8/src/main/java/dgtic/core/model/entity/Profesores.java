@@ -2,6 +2,7 @@ package dgtic.core.model.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.List;
 
@@ -23,6 +24,7 @@ public class Profesores {
     private Usuarios usuario;
 
     // Un Profesor imparte varios Grupos
+    @JsonIgnore
     @OneToMany(mappedBy = "profesor")
     private List<Grupos> grupos;
 

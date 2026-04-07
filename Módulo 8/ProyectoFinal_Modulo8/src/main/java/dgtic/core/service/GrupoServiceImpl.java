@@ -64,9 +64,11 @@ public class GrupoServiceImpl implements GrupoService {
 
     @Override
     public void eliminar(Integer id) {
+        if (!grupoRepository.existsById(id)) {
+            throw new dgtic.core.exception.NotDataFoundException("El grupo con ID " + id + " no existe.");
+        }
         grupoRepository.deleteById(id);
     }
-
 
 
 }
