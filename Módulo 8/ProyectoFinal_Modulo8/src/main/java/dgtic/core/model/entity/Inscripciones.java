@@ -1,6 +1,7 @@
 package dgtic.core.model.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Entity
@@ -22,10 +23,12 @@ public class Inscripciones {
 
     @ManyToOne
     @JoinColumn(name = "id_alumno", nullable = false)
+    @NotNull(message = "El alumno es obligatorio")
     private Alumnos alumno;
 
     @ManyToOne
     @JoinColumn(name = "id_grupo", nullable = false)
+    @NotNull(message = "El grupo es obligatorio")
     private Grupos grupo;
 
     @Override

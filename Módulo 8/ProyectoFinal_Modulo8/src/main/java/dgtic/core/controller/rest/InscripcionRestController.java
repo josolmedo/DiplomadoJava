@@ -2,6 +2,7 @@ package dgtic.core.controller.rest;
 
 import dgtic.core.model.entity.Inscripciones;
 import dgtic.core.repository.InscripcionRepository;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +30,7 @@ public class InscripcionRestController {
     }
 
     @PostMapping
-    public ResponseEntity<Inscripciones> crear(@RequestBody Inscripciones inscripcion) {
+    public ResponseEntity<Inscripciones> crear(@Valid @RequestBody Inscripciones inscripcion) {
         return ResponseEntity.status(HttpStatus.CREATED).body(inscripcionRepository.save(inscripcion));
     }
 
