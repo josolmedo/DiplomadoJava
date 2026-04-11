@@ -29,12 +29,13 @@ public class SecurityConfiguration {
             (authorize) -> authorize
                 .requestMatchers("/auth/welcome").authenticated()
                 // para cualquier endpoint
-                //.requestMatchers("/auth/**").authenticated()
+                //.requestMatchers("/auth/**").authenticated() PARA QUE TODOS SEAN AUTENTICADOS
                 .anyRequest().denyAll() //ES ZERO TRUST FUERTE
         )
         .httpBasic(Customizer.withDefaults())
         .formLogin(Customizer.withDefaults());
          */
+
         http
                 //autorizar mis ENDPOINTS
                 //metiendo seguridad a nivel endpoint
@@ -47,6 +48,7 @@ public class SecurityConfiguration {
                 .formLogin(Customizer.withDefaults());
 
         return http.build();
+
     }
 
     @Bean
