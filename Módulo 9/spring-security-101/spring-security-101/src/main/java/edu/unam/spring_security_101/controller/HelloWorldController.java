@@ -12,8 +12,14 @@ public class HelloWorldController {
 
     @GetMapping("/welcome")
     public String helloWorld(){
-        log.info("Estoy entrando a mi LOG!!!!");
+        log.info("Estoy entrando a Hello World endpoint");
         return "Hello World";
+    }
+
+    @GetMapping("/goodbye")
+    public String goodbyeWorld(){
+        log.info("Estoy entrando a Good Bye endpoint");
+        return "Goodbye World!";
     }
 
     /*public String helloWorld2(int a, Class b){
