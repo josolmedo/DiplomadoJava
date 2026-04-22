@@ -1,42 +1,80 @@
 package dgtic.core.config;
 
+import dgtic.core.model.entity.Usuarios;
+import dgtic.core.repository.UsuarioRepository;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.SecurityFilterChain;
+
+import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration {
 
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // 1. Permitir acceso libre a recursos estáticos (Punto 9c del PDF)
-                        .requestMatchers("/css/**", "/js/**", "/libs/**", "/image/**", "/imagenes/**").permitAll()
-                        // 2. Proteger todas las demás rutas (Punto 9d del PDF)
+                        .requestMatchers("/", "/bootstrap/**", "/iconos/**", "/tema/**", "/image/**", "/imagenes/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(login -> login
-                        // 3. Definir tu login personalizado (Punto 9a del PDF)
                         .loginPage("/login")
-                        // Le decimos a Spring que tu campo en HTML se llama "email" y no "username"
                         .usernameParameter("email")
                         .passwordParameter("password")
-                        // Redirigir a tu página principal tras un login exitoso
-                        .defaultSuccessUrl("/principal", true)
+                        // AQUÍ ESTÁ LA SOLUCIÓN: Interceptamos el login exitoso
+                        .successHandler((request, response, authentication) -> {
+                            String email = authentication.getName();
+                            Usuarios usuario = usuarioRepository.findByEmail(email).orElse(null);
+
+                            if (usuario != null) {
+                                HttpSession session = request.getSession();
+                                // 1. Guardamos el ID para tus reportes e inscripciones
+                                session.setAttribute("usuarioId", usuario.getId());
+
+                                // 2. Guardamos el nombre para tu navbar
+                                String apellido = usuario.getApellido() != null ? " " + usuario.getApellido() : "";
+                                session.setAttribute("usuarioLogueado", usuario.getNombre() + apellido);
+
+                                // 3. Traducimos y guardamos el rol para que TUS CONTROLADORES NO TE EXPULSEN
+                                String nombreRolBd = usuario.getRol().getNombre();
+                                if (nombreRolBd.equalsIgnoreCase("Administrador")) {
+                                    session.setAttribute("rol", "ADMIN");
+                                } else if (nombreRolBd.equalsIgnoreCase("Profesor")) {
+                                    session.setAttribute("rol", "PROFESOR");
+                                } else if (nombreRolBd.equalsIgnoreCase("Alumno")) {
+                                    session.setAttribute("rol", "ALUMNO");
+                                } else if (nombreRolBd.equalsIgnoreCase("Padre de familia")) {
+                                    session.setAttribute("rol", "PADRE");
+                                }
+                            }
+                            // Mandamos al usuario a la pantalla principal
+                            response.sendRedirect("/principal");
+                        })
                         .permitAll()
                 )
                 .logout(logout -> logout
-                        // 4. Configurar el logout (Punto 9b del PDF)
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout")
+                        .addLogoutHandler((request, response, authentication) -> {
+                            HttpSession session = request.getSession(false);
+                            if (session != null) {
+                                session.invalidate(); // Limpiamos la sesión manual al salir
+                            }
+                        })
                         .permitAll()
                 );
 
@@ -45,19 +83,26 @@ public class SecurityConfiguration {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        // 5. Usuarios In-Memory (Punto 9e del PDF)
-        UserDetails admin = User.withDefaultPasswordEncoder()
-                .username("admin@escured.com")
-                .password("12345")
-                .roles("ADMIN")
-                .build();
+        return email -> {
+            Usuarios usuario = usuarioRepository.findByEmail(email)
+                    .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado en la BD: " + email));
 
-        UserDetails alumno = User.withDefaultPasswordEncoder()
-                .username("alumno@escured.com")
-                .password("12345")
-                .roles("ALUMNO")
-                .build();
+            String nombreRolBd = usuario.getRol().getNombre();
+            String rolSpring = "ROLE_USER";
 
-        return new InMemoryUserDetailsManager(admin, alumno);
+            if (nombreRolBd.equalsIgnoreCase("Administrador")) {
+                rolSpring = "ROLE_ADMIN";
+            } else if (nombreRolBd.equalsIgnoreCase("Profesor")) {
+                rolSpring = "ROLE_PROFESOR";
+            } else if (nombreRolBd.equalsIgnoreCase("Alumno")) {
+                rolSpring = "ROLE_ALUMNO";
+            }
+
+            return new User(
+                    usuario.getEmail(),
+                    "{noop}" + usuario.getPassword(),
+                    Collections.singletonList(new SimpleGrantedAuthority(rolSpring))
+            );
+        };
     }
 }

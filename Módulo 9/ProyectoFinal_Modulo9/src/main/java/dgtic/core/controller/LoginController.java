@@ -21,7 +21,7 @@ public class LoginController {
         return "login";
     }
 
-    @PostMapping("/login")
+    /*@PostMapping("/login")
     public String procesarLogin(@RequestParam("email") String email,
                                 @RequestParam("password") String password,
                                 HttpSession session,
@@ -64,5 +64,5 @@ public class LoginController {
     public String cerrarSesion(HttpSession session) {
         session.invalidate();
         return "redirect:/login?logout";
-    }
+    }*/
 }
