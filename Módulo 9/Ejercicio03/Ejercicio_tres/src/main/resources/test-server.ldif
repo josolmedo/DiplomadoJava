@@ -1,0 +1,78 @@
+dn: dc=example,dc=com
+objectClass: top
+objectClass: domain
+dc: example
+
+# ============================================
+# OU PARA USUARIOS (coincide con userDnPatterns)
+# ============================================
+dn: ou=user,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: user
+
+# ============================================
+# OU PARA GRUPOS (coincide con groupSearchBase)
+# ============================================
+dn: ou=groups,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: groups
+
+# ============================================
+# GRUPO: admins (movido a ou=groups)
+# ============================================
+dn: cn=admins,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+cn: admins
+member: uid=user1,ou=user,dc=example,dc=com
+member: uid=user3,ou=user,dc=example,dc=com
+
+# ============================================
+# USUARIOS (movidos a ou=user)
+# ============================================
+
+# Usuario 1 - texto plano
+dn: uid=user1,ou=user,dc=example,dc=com
+objectClass: inetOrgPerson
+cn: Usuario Uno
+sn: Uno
+uid: user1
+mail: user1@example.com
+userPassword: password123
+
+# Usuario 2 - SHA
+dn: uid=user2,ou=user,dc=example,dc=com
+objectClass: inetOrgPerson
+cn: Usuario Dos
+sn: Dos
+uid: user2
+mail: user2@example.com
+userPassword: {SHA}W6ph5Mm5Pz8GgiULbPgzG37mj9g=
+
+# Usuario 3 - bcrypt
+dn: uid=user3,ou=user,dc=example,dc=com
+objectClass: inetOrgPerson
+cn: Usuario Tres
+sn: Tres
+uid: user3
+mail: user3@example.com
+userPassword: {BCRYPT}$2a$10$7QJ8h1Yj7yZz5Q0imeISF.RGDpa2BkLomPvKgJo0vvV.W5AO9M/dW
+
+# Usuario 4 - bcrypt
+dn: uid=user4,ou=user,dc=example,dc=com
+objectClass: inetOrgPerson
+cn: Usuario Cuatro
+sn: Cuatro
+uid: user4
+mail: user4@example.com
+userPassword: {BCRYPT}$2a$10$DowJonesIndexFakeHashExample1234567890abcdEfghIjklmn
+
+# Usuario 5 - texto plano
+dn: uid=user5,ou=user,dc=example,dc=com
+objectClass: inetOrgPerson
+cn: Usuario Cinco
+sn: Cinco
+uid: user5
+mail: user5@example.com
+userPassword: 123456
